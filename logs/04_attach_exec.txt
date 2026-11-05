@@ -1,0 +1,54 @@
+## 1. 컨테이너 내부 진입 후 명령 실행 → exit
+$ printf "hostname\nls /\necho hello-inside\nexit\n" | docker run -i --name ubuntu-it ubuntu:24.04 bash
+c73a0f3b267d
+bin
+boot
+dev
+etc
+home
+lib
+lib64
+media
+mnt
+opt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+hello-inside
+
+$ docker ps -a --filter name=ubuntu-it
+CONTAINER ID   IMAGE          COMMAND   CREATED        STATUS                              PORTS     NAMES
+c73a0f3b267d   ubuntu:24.04   "bash"    1 second ago   Exited (0) Less than a second ago             ubuntu-it
+
+## 2. exec: 새 프로세스로 들어갔다 나오기
+$ docker run -di --name ubuntu-ae ubuntu:24.04 bash
+bb4722f4e99c74c7907a0af3e8f3f422b697e16a2fed1900588dc15c1bbc68c5
+
+$ printf "echo inside-via-exec\nps -e -o pid,cmd\nexit\n" | docker exec -i ubuntu-ae bash
+inside-via-exec
+    PID CMD
+      1 bash
+      7 bash
+     13 ps -e -o pid,cmd
+
+$ docker ps --filter name=ubuntu-ae
+CONTAINER ID   IMAGE          COMMAND   CREATED        STATUS                  PORTS     NAMES
+bb4722f4e99c   ubuntu:24.04   "bash"    1 second ago   Up Less than a second             ubuntu-ae
+
+## 3. attach: 메인 프로세스(PID 1)에 붙었다 나오기
+$ printf "echo inside-via-attach; echo PID=\$\$\nexit\n" | docker attach ubuntu-ae
+
+$ docker logs ubuntu-ae
+inside-via-attach
+PID=1
+
+$ docker ps -a --filter name=ubuntu-ae
+CONTAINER ID   IMAGE          COMMAND   CREATED         STATUS                              PORTS     NAMES
+bb4722f4e99c   ubuntu:24.04   "bash"    2 seconds ago   Exited (0) Less than a second ago             ubuntu-ae
+

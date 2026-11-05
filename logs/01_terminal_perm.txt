@@ -1,0 +1,76 @@
+$ cd practice 2>/dev/null || { mkdir -p practice && cd practice; }
+
+$ pwd
+/c/Users/PC/Documents/dev-workstation/practice
+
+$ mkdir -p docs backup
+
+$ echo "hello codyssey" > note.txt
+
+$ touch empty.txt
+
+$ ls -la
+total 5
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 .
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 ..
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 backup
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 docs
+-rw-r--r-- 1 PC 197121  0 Nov  3 15:08 empty.txt
+-rw-r--r-- 1 PC 197121 15 Nov  3 15:08 note.txt
+
+$ cat note.txt
+hello codyssey
+
+$ cp note.txt backup/note_copy.txt
+
+$ mv empty.txt docs/renamed.txt
+
+$ ls -la docs backup
+backup:
+total 1
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 .
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 ..
+-rw-r--r-- 1 PC 197121 15 Nov  3 15:08 note_copy.txt
+
+docs:
+total 0
+drwxr-xr-x 1 PC 197121 0 Nov  3 15:08 .
+drwxr-xr-x 1 PC 197121 0 Nov  3 15:08 ..
+-rw-r--r-- 1 PC 197121 0 Nov  3 15:08 renamed.txt
+
+$ cd docs && pwd && cd ..
+/c/Users/PC/Documents/dev-workstation/practice/docs
+
+$ cd ../practice && pwd
+/c/Users/PC/Documents/dev-workstation/practice
+
+$ cd "/c/Users/PC/Documents/dev-workstation/practice" && pwd
+/c/Users/PC/Documents/dev-workstation/practice
+
+$ rm backup/note_copy.txt && rmdir backup
+
+$ ls -la
+total 5
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 .
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 ..
+drwxr-xr-x 1 PC 197121  0 Nov  3 15:08 docs
+-rw-r--r-- 1 PC 197121 15 Nov  3 15:08 note.txt
+
+$ ls -l note.txt
+-rw-r--r-- 1 PC 197121 15 Nov  3 15:08 note.txt
+
+$ chmod 644 note.txt && ls -l note.txt
+-rw-r--r-- 1 PC 197121 15 Nov  3 15:08 note.txt
+
+$ chmod 755 note.txt && ls -l note.txt
+-rw-r--r-- 1 PC 197121 15 Nov  3 15:08 note.txt
+
+$ ls -ld docs
+drwxr-xr-x 1 PC 197121 0 Nov  3 15:08 docs
+
+$ chmod 700 docs && ls -ld docs
+drwxr-xr-x 1 PC 197121 0 Nov  3 15:08 docs
+
+$ chmod 755 docs && ls -ld docs
+drwxr-xr-x 1 PC 197121 0 Nov  3 15:08 docs
+

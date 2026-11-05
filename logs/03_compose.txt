@@ -1,0 +1,110 @@
+$ docker compose version
+Docker Compose version v5.6.1
+
+$ WEB_PORT=8090 docker compose up -d --build
+ Image my-web:1.0 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 540B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 30B
+#2 transferring dockerfile: 724B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/nginx:1.27-alpine
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 61B done
+#5 DONE 0.0s
+
+#6 [1/2] FROM docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+#6 resolve docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 0.0s done
+#6 DONE 0.0s
+
+#7 [2/2] COPY site/ /usr/share/nginx/html/
+#7 CACHED
+
+#8 exporting to image
+#8 exporting layers done
+#8 exporting manifest sha256:8a730f71f913ce09f41e3c617d0158b3bca687cd47954ddaa834eb553796f39e done
+#8 exporting config sha256:b9697d48ce06fe04b8fd2a9bc5d75e6c28698efc800b94bef3d9093d1d653c98
+#8 exporting config sha256:b9697d48ce06fe04b8fd2a9bc5d75e6c28698efc800b94bef3d9093d1d653c98 done
+#8 exporting attestation manifest sha256:79dfe4f916c3739c7563791a13b5a45c8355ddbabb73c5f85ffdd133443fe374 0.0s done
+#8 exporting manifest list sha256:3dd75e308c3820b650aac683d3c72b5498b5e411cf0f0f8baac7c5da8351e554 0.0s done
+#8 naming to docker.io/library/my-web:1.0 done
+#8 unpacking to docker.io/library/my-web:1.0 done
+#8 DONE 0.1s
+
+#9 resolving provenance for metadata file
+#9 DONE 0.0s
+ Image my-web:1.0 Built 
+ Network dev-workstation_default Creating 
+ Network dev-workstation_default Creating 
+ Network dev-workstation_default Created 
+ Network dev-workstation_default Created 
+ Container dev-workstation-cache-1 Creating 
+ Container dev-workstation-cache-1 Created 
+ Container dev-workstation-web-1 Creating 
+ Container dev-workstation-web-1 Created 
+ Container dev-workstation-cache-1 Starting 
+ Container dev-workstation-cache-1 Started 
+ Container dev-workstation-web-1 Starting 
+ Container dev-workstation-web-1 Started 
+
+$ docker compose ps
+NAME                      IMAGE            COMMAND                   SERVICE   CREATED         STATUS                            PORTS
+dev-workstation-cache-1   redis:7-alpine   "docker-entrypoint.s…"   cache     4 seconds ago   Up 3 seconds                      6379/tcp
+dev-workstation-web-1     my-web:1.0       "/docker-entrypoint.…"   web       4 seconds ago   Up 3 seconds (health: starting)   0.0.0.0:8090->80/tcp, [::]:8090->80/tcp
+
+$ curl -s http://localhost:8090
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Dev Workstation</title>
+</head>
+<body>
+  <h1>Hello from my custom NGINX!</h1>
+  <p>version: v1</p>
+</body>
+</html>
+
+$ docker compose exec web sh -c "nc -zv cache 6379"
+cache (172.18.0.2:6379) open
+
+$ docker compose exec cache redis-cli ping
+PONG
+
+$ docker compose exec web sh -c "echo APP_ENV=\$APP_ENV"
+APP_ENV=dev
+
+$ docker compose logs --tail 5
+cache-1  | 1:M 03 Nov 2026 06:08:57.963 * RDB age 3712 seconds
+cache-1  | 1:M 03 Nov 2026 06:08:57.963 * RDB memory usage when created 0.93 Mb
+cache-1  | 1:M 03 Nov 2026 06:08:57.963 * Done loading RDB, keys loaded: 0, keys expired: 0.
+cache-1  | 1:M 03 Nov 2026 06:08:57.963 * DB loaded from disk: 0.000 seconds
+cache-1  | 1:M 03 Nov 2026 06:08:57.963 * Ready to accept connections tcp
+web-1    | 2026/11/03 06:08:58 [notice] 1#1: start worker process 42
+web-1    | 2026/11/03 06:08:58 [notice] 1#1: start worker process 43
+web-1    | 2026/11/03 06:08:58 [notice] 1#1: start worker process 44
+web-1    | 2026/11/03 06:08:58 [notice] 1#1: start worker process 45
+web-1    | 172.18.0.1 - - [03/Nov/2026:06:09:01 +0000] "GET / HTTP/1.1" 200 189 "-" "curl/8.23.0" "-"
+
+$ docker compose down
+ Container dev-workstation-web-1 Stopping 
+ Container dev-workstation-web-1 Stopped 
+ Container dev-workstation-web-1 Removing 
+ Container dev-workstation-web-1 Removed 
+ Container dev-workstation-cache-1 Stopping 
+ Container dev-workstation-cache-1 Stopped 
+ Container dev-workstation-cache-1 Removing 
+ Container dev-workstation-cache-1 Removed 
+ Network dev-workstation_default Removing 
+ Network dev-workstation_default Removed 
+

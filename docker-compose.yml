@@ -1,0 +1,19 @@
+# 보너스: 웹 서버 + 보조 서비스(redis) 멀티 컨테이너
+services:
+  web:
+    build: ./app
+    image: my-web:1.0
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    environment:
+      - APP_ENV=${APP_ENV:-dev}
+    depends_on:
+      - cache
+
+  cache:
+    image: redis:7-alpine
+    volumes:
+      - cache-data:/data
+
+volumes:
+  cache-data:
