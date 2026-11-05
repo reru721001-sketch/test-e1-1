@@ -65,6 +65,10 @@ $ rm backup/note_copy.txt               # 삭제
 | 절대 경로 | `/` 부터 전부 적은 경로. 어디서든 같은 곳 | `/home/user/docs` |
 | 상대 경로 | 지금 위치 기준. 위치에 따라 달라짐 | `../docs` |
 
+📸 **실행 화면** (우분투 컨테이너에서 실행)
+
+![터미널 조작](docs/screenshots/terminal.png)
+
 📄 전체 로그: [logs/01_terminal_perm.txt](logs/01_terminal_perm.txt)
 
 ---
@@ -81,6 +85,12 @@ $ ls -ld d        drwxr-xr-x  d        # 변경 전 755
 $ chmod 700 d
 $ ls -ld d        drwx------  d        # 변경 후 700
 ```
+
+📸 **실행 화면** — 파일 `644 → 755 → 600`, 폴더 `755 → 700`, 기호 방식(`u-w,o+r`)까지
+
+![권한 변경](docs/screenshots/permission.png)
+
+> 맨 앞 글자는 종류: `-` = 파일, `d` = 폴더(directory). 폴더는 `ls -ld` 로 봐야 폴더 자신의 권한이 나온다.
 
 ### 권한 숫자 ↔ 글자
 | 숫자 | 2진수 | 글자 | 의미 |
