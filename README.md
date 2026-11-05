@@ -11,6 +11,20 @@
 | Docker | Docker Desktop 4.97.0 (Engine 29.9.2) |
 | Git | 2.56.0 |
 
+## ✅ 체크리스트 · 검증 방법
+| 항목 | 확인한 명령 | 확인한 것 | 결과 |
+|---|---|---|---|
+| ✅ 터미널 | `mkdir`, `cp`, `mv`, `rm`, `ls` | 파일·폴더 만들기/복사/이동/삭제 | [1.](#1-터미널-조작), [로그](logs/01_terminal_perm.txt) |
+| ✅ 권한 | `chmod`, `ls -l` | 바꾸기 전/후 비교 | [2.](#2-권한-변경-전후-비교), [로그](logs/01_terminal_perm.txt) |
+| ✅ Docker 설치 | `docker --version`, `docker info` | 설치·실행 여부 | [3.](#3-docker-설치-점검), [로그](logs/02_docker.txt) |
+| ✅ Docker 운영 | `images`, `ps -a`, `logs`, `stats` | 이미지·컨테이너 상태 | [4.](#4-docker-기본-운영), [로그](logs/02_docker.txt) |
+| ✅ Dockerfile | `docker build`, `docker run` | 내 페이지가 뜨는지 | [5.](#5-커스텀-이미지-제작), [로그](logs/02_docker.txt) |
+| ✅ 포트 | `-p 8080:80`, `-p 8081:80` | 브라우저 접속 | [6.](#6-포트-매핑) |
+| ✅ 바인드 마운트 | `-v 폴더:경로` | 수정 전/후 비교 | [7-1.](#7-1-바인드-마운트-재빌드-없이-수정-반영), [로그](logs/02_docker.txt) |
+| ✅ 볼륨 | `docker volume` | 삭제 전/후 비교 | [7-2.](#7-2-볼륨-컨테이너를-지워도-데이터-유지), [로그](logs/02_docker.txt) |
+| ✅ Git / GitHub | `git config`, `git remote`, `git push` | 설정·연동 | [8.](#8-git-설정-및-github-연동) |
+| ✅ (보너스) Compose | `docker compose` | 컨테이너 2개 동시 실행 | [10.](#10-보너스--docker-compose), [로그](logs/03_compose.txt) |
+
 ---
 
 ## 프로젝트 디렉토리 구성
@@ -168,7 +182,8 @@ $ curl http://localhost:8080
 ```
 
 > **수정 흐름:** 실행 중인 컨테이너를 고치는 게 아니라
-> `index.html` 수정 → `docker build`(새 이미지) → `docker run`(새 컨테이너)
+> `index.html` 수정 → `docker build`(새 이미지) → 기존 컨테이너 삭제 → `docker run`(새 컨테이너)
+> 컨테이너 안에서 직접 고친 내용은 컨테이너를 지우면 사라지기 때문이다.
 
 ---
 
@@ -235,6 +250,20 @@ user.name=손건
 user.email=****@icloud.com
 init.defaultbranch=main
 ```
+**GitHub 원격 저장소 연결**
+```bash
+$ git remote add origin https://github.com/reru721001-sketch/test-e1-1.git
+$ git remote -v
+origin	https://github.com/reru721001-sketch/test-e1-1.git (fetch)
+origin	https://github.com/reru721001-sketch/test-e1-1.git (push)
+$ git push -u origin main
+To https://github.com/reru721001-sketch/test-e1-1.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+$ git branch -vv
+* main 5b62004 [origin/main] 미션 E1-1 개발 워크스테이션 구축 결과 정리
+```
+
 | 명령 | 하는 일 |
 |---|---|
 | `git remote add origin <주소>` | GitHub 저장소를 `origin` 이라는 이름으로 연결 |
@@ -305,12 +334,53 @@ $ docker compose down
 | `tee: No such file or directory` | `cd` 로 폴더를 옮겨서 상대 경로가 틀어짐 | 로그 경로를 절대 경로로 변경 |
 | `port is already allocated (8080)` | 기존 컨테이너 `my-web-8080` 이 8080을 사용 중 | `docker stop` 으로 끄거나 다른 포트(8083) 사용 |
 
-**포트 충돌 원인 찾는 순서**
+### 상세 (문제 → 원인 가설 → 확인 → 해결)
+
+**#1 Windows에서 `chmod` 가 안 됨**
+- 문제: 권한을 바꿔도 그대로였다.
+- 원인 가설: Windows 파일 시스템은 리눅스 권한을 지원 안 하는 것 같다.
+- 확인: 우분투 컨테이너에서 하니 잘 바뀌었다.
+- 해결: 권한 실습은 컨테이너 안에서 했다.
+
+**#2 Docker Desktop이 안 켜짐**
+- 문제: "Virtual Machine Platform is not enabled" 오류.
+- 원인 가설: 필요한 Windows 기능이 아직 적용 안 된 것 같다.
+- 확인: 기능은 켰지만 재부팅을 안 한 상태였다.
+- 해결: 재부팅 후 정상 실행.
+
+**#3 로그 파일 경로 오류**
+- 문제: `tee: No such file or directory`
+- 원인 가설: `cd` 로 폴더를 옮겨서 상대 경로가 틀어진 것 같다.
+- 확인: `pwd` 로 보니 다른 폴더에 있었다.
+- 해결: 로그 경로를 절대 경로로 바꿨다.
+
+**#4 포트 충돌 (`port is already allocated`)**
+- 문제: 이미 8080을 쓰는 컨테이너가 있는데 8080으로 하나 더 실행하니 오류가 났다.
 ```bash
-$ docker ps --filter publish=8080          # 1) 8080 쓰는 컨테이너 찾기
-my-web-8080   0.0.0.0:8080->80/tcp
-$ netstat -ano | grep LISTEN | grep :8080  # 2) 컨테이너가 아니면 PID 찾기
-TCP    0.0.0.0:8080   LISTENING   25184
+$ docker run -d -p 8080:80 --name conflict-test my-web:1.0
+docker: Error response from daemon: ... Bind for 0.0.0.0:8080 failed: port is already allocated
+```
+- 원인 가설: 다른 컨테이너(또는 프로그램)가 8080을 이미 쓰고 있는 것 같다.
+- 확인: 누가 8080을 쓰는지 순서대로 찾았다.
+```bash
+# 1) 컨테이너 중에 8080을 쓰는 게 있는지
+$ docker ps --filter publish=8080
+NAMES         PORTS
+my-web-8080   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+
+# 2) 컨테이너가 아니면, PC에서 8080을 쓰는 프로그램(PID) 찾기
+$ netstat -ano | grep LISTEN | grep :8080
+  TCP    0.0.0.0:8080     0.0.0.0:0     LISTENING     25184
+$ powershell "Get-Process -Id 25184"
+25184 com.docker.backend      # Docker가 my-web-8080 때문에 열어 둔 것
+```
+- 해결: 둘 중 하나를 선택한다.
+  - 기존 컨테이너를 끈다: `docker stop my-web-8080` (컨테이너가 아니면 작업 관리자에서 그 PID 종료)
+  - 다른 포트를 쓴다:
+```bash
+$ docker run -d -p 8083:80 --name conflict-test my-web:1.0
+$ curl -s -o /dev/null -w "%{http_code}\n" localhost:8083
+200                                   # 접속 성공
 ```
 
 ---
