@@ -50,15 +50,15 @@ test-e1-1/
 
 ## 1. 터미널 조작
 ```bash
-$ mkdir -p docs backup                  # 폴더 만들기
-$ echo "hello codyssey" > note.txt      # 파일 만들기
-$ ls -la                                # 목록 보기 (숨김 포함)
-drwxr-xr-x  backup
-drwxr-xr-x  docs
--rw-r--r--  note.txt
-$ cp note.txt backup/note_copy.txt      # 복사
-$ mv note.txt docs/renamed.txt          # 이동 + 이름 바꾸기
-$ rm backup/note_copy.txt               # 삭제
+$ mkdir -p docs backup                  # docs, backup 폴더 2개 만들기 (-p: 이미 있어도 오류 없음)
+$ echo "hello codyssey" > note.txt      # 글자를 note.txt에 써서 새 파일 만들기
+$ ls -la                                # 지금 폴더 목록 보기 (-l: 자세히, -a: 숨김 파일 포함)
+drwxr-xr-x  backup                      # d로 시작 = 폴더
+drwxr-xr-x  docs                        # d로 시작 = 폴더
+-rw-r--r--  note.txt                    # -로 시작 = 파일
+$ cp note.txt backup/note_copy.txt      # note.txt를 backup 폴더에 note_copy.txt로 복사
+$ mv note.txt docs/renamed.txt          # note.txt를 docs 폴더로 옮기면서 이름도 renamed.txt로 바꿈
+$ rm backup/note_copy.txt               # 복사본 삭제
 ```
 | 경로 | 뜻 | 예시 |
 |---|---|---|
@@ -77,13 +77,13 @@ $ rm backup/note_copy.txt               # 삭제
 > Windows는 리눅스 권한을 지원하지 않아서 **우분투 컨테이너 안에서** 실습했다.
 
 ```bash
-$ ls -l f.txt     -rw-r--r--  f.txt    # 변경 전 644
-$ chmod 755 f.txt
-$ ls -l f.txt     -rwxr-xr-x  f.txt    # 변경 후 755
+$ ls -l f.txt     -rw-r--r--  f.txt    # 파일 권한 확인: 변경 전 644 (나 읽기·쓰기 / 나머지 읽기만)
+$ chmod 755 f.txt                      # 권한을 755로 바꿈 (나 전부 / 나머지 읽기·실행)
+$ ls -l f.txt     -rwxr-xr-x  f.txt    # 다시 확인: 변경 후 755 (x가 생김 = 실행 가능)
 
-$ ls -ld d        drwxr-xr-x  d        # 변경 전 755
-$ chmod 700 d
-$ ls -ld d        drwx------  d        # 변경 후 700
+$ ls -ld d        drwxr-xr-x  d        # 폴더 권한 확인 (-d: 폴더 안 말고 폴더 자신): 변경 전 755
+$ chmod 700 d                          # 폴더를 700으로 바꿈 (나만 전부, 나머지는 아무것도 못 함)
+$ ls -ld d        drwx------  d        # 다시 확인: 변경 후 700
 ```
 
 📸 **실행 화면** — 파일 `644 → 755 → 600`, 폴더 `755 → 700`, 기호 방식(`u-w,o+r`)까지
@@ -108,12 +108,12 @@ $ ls -ld d        drwx------  d        # 변경 후 700
 
 ## 3. Docker 설치 점검
 ```bash
-$ docker --version
-Docker version 29.9.2, build a82e528
-$ docker info              # Server 정보가 나오면 데몬 실행 중
-Server Version: 29.9.2
-$ docker run --rm hello-world
-Hello from Docker!
+$ docker --version                   # Docker가 설치됐는지, 버전 확인
+Docker version 29.9.2, build a82e528 # 설치돼 있음
+$ docker info                        # Docker 엔진(데몬)이 켜져 있는지 확인
+Server Version: 29.9.2               # Server 정보가 나오면 엔진이 켜져 있다는 뜻
+$ docker run --rm hello-world        # 테스트용 이미지 실행 (--rm: 끝나면 컨테이너 자동 삭제)
+Hello from Docker!                   # 이 문구가 나오면 Docker 정상 동작
 ```
 
 ---
@@ -131,16 +131,16 @@ Hello from Docker!
 > 이미지 하나로 컨테이너를 여러 개 띄울 수 있다.
 
 ```bash
-$ docker images            # 가진 이미지 목록
-hello-world   25.9kB
+$ docker images            # 내 PC에 있는 이미지 목록
+hello-world   25.9kB       # 이미지 이름과 용량
 ubuntu        119MB
-$ docker ps -a             # 컨테이너 목록 (-a = 멈춘 것까지)
-my-web-8080   Up (healthy)   0.0.0.0:8080->80/tcp
-my-web-8081   Up (healthy)   0.0.0.0:8081->80/tcp
-$ docker logs my-web-8080  # 컨테이너 로그
-"GET / HTTP/1.1" 200
-$ docker stats --no-stream # CPU·메모리 사용량
-my-web-8080   CPU 0.00%   MEM 14.97MiB
+$ docker ps -a             # 컨테이너 목록 (-a: 꺼진 것까지 전부)
+my-web-8080   Up (healthy)   0.0.0.0:8080->80/tcp   # Up = 실행 중, healthy = 상태 검사 통과, PC 8080 → 컨테이너 80
+my-web-8081   Up (healthy)   0.0.0.0:8081->80/tcp   # 같은 이미지로 하나 더 띄운 것 (PC 8081)
+$ docker logs my-web-8080  # 이 컨테이너가 남긴 기록 보기
+"GET / HTTP/1.1" 200       # 누가 페이지를 요청했고 200(성공)으로 응답했다는 기록
+$ docker stats --no-stream # 컨테이너별 CPU·메모리 사용량 (--no-stream: 한 번만 출력)
+my-web-8080   CPU 0.00%   MEM 14.97MiB   # CPU 거의 0%, 메모리 약 15MB 사용
 ```
 
 ### attach vs exec
@@ -167,12 +167,18 @@ my-web-8080   CPU 0.00%   MEM 14.97MiB
 
 ### Dockerfile ([app/Dockerfile](app/Dockerfile))
 ```dockerfile
+# nginx(웹 서버) 1.27 버전, 가벼운 alpine 리눅스 기반 이미지에서 시작
 FROM nginx:1.27-alpine
+# 이미지에 이름표(설명) 붙이기
 LABEL org.opencontainers.image.title="my-custom-nginx"
+# 환경변수 APP_ENV를 dev로 설정 (개발용이라는 표시)
 ENV APP_ENV=dev
+# 내 PC의 site 폴더(내 웹페이지)를 nginx가 보여 주는 폴더로 복사
 COPY site/ /usr/share/nginx/html/
+# 10초마다 내 페이지가 열리는지 검사, 3초 안에 응답 없으면 실패, 3번 연속 실패하면 unhealthy
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
   CMD wget -qO- http://localhost/ >/dev/null || exit 1
+# 이 컨테이너는 80번 포트를 쓴다고 적어 둠 (표시용, 실제 연결은 -p로 함)
 EXPOSE 80
 ```
 
@@ -184,11 +190,11 @@ COPY site/ /usr/share/nginx/html/
 
 ### 빌드 / 실행
 ```bash
-$ docker build -t my-web:1.0 ./app
-naming to docker.io/library/my-web:1.0 done
-$ docker run -d -p 8080:80 --name my-web-8080 my-web:1.0
-$ curl http://localhost:8080
-<h1>Hello from my custom NGINX!</h1>
+$ docker build -t my-web:1.0 ./app                        # app 폴더의 Dockerfile로 이미지 만들기 (-t: 이름 my-web, 버전 1.0)
+naming to docker.io/library/my-web:1.0 done             # 이미지 만들기 완료
+$ docker run -d -p 8080:80 --name my-web-8080 my-web:1.0 # 이미지로 컨테이너 실행 (-d: 백그라운드, -p: PC 8080 → 컨테이너 80, --name: 이름)
+$ curl http://localhost:8080                            # 내 PC 8080으로 접속해서 페이지 내용 받아 오기
+<h1>Hello from my custom NGINX!</h1>                    # 내가 만든 index.html이 나옴 = 성공
 ```
 
 > **수정 흐름:** 실행 중인 컨테이너를 고치는 게 아니라
@@ -225,26 +231,27 @@ $ curl http://localhost:8080
 ### 7-1. 바인드 마운트: 재빌드 없이 수정 반영
 ```bash
 $ docker run -d -p 8082:80 -v "$PWD/bind-site":/usr/share/nginx/html nginx:1.27-alpine
-$ curl localhost:8082                         # 수정 전
-version: v1
-$ sed -i "s/v1/v2/" bind-site/index.html      # 내 PC에서 수정
-$ curl localhost:8082                         # 수정 후
-version: v2
+#   └ -v 내PC폴더:컨테이너폴더 → 내 PC의 bind-site 폴더를 컨테이너 웹페이지 폴더에 그대로 연결
+$ curl localhost:8082                         # 수정 전 페이지 확인
+version: v1                                   # 처음 내용 v1
+$ sed -i "s/v1/v2/" bind-site/index.html      # 내 PC 파일에서 v1을 v2로 바꿈 (컨테이너는 안 건드림)
+$ curl localhost:8082                         # 다시 확인
+version: v2                                   # 다시 빌드 안 했는데 바로 v2 = 폴더가 연결돼 있다는 증거
 ```
 
 ### 7-2. 볼륨: 컨테이너를 지워도 데이터 유지
 ```bash
 # 1. 볼륨 생성
-$ docker volume create mydata
+$ docker volume create mydata                 # Docker가 관리하는 저장 공간 mydata 만들기
 # 2. 컨테이너에 연결 + 데이터 작성
-$ docker run -d --name vol-test -v mydata:/data ubuntu sleep infinity
-$ docker exec vol-test sh -c "echo hi > /data/hello.txt"
+$ docker run -d --name vol-test -v mydata:/data ubuntu sleep infinity   # mydata를 컨테이너 /data에 연결 (sleep infinity: 안 꺼지게 계속 켜 둠)
+$ docker exec vol-test sh -c "echo hi > /data/hello.txt"                # 컨테이너 안에서 /data/hello.txt에 hi 저장
 # 3. 컨테이너 삭제
-$ docker rm -f vol-test
+$ docker rm -f vol-test                       # 컨테이너 강제 삭제 (-f: 켜져 있어도 삭제)
 # 4. 새 컨테이너에서 확인
-$ docker run -d --name vol-test2 -v mydata:/data ubuntu sleep infinity
-$ docker exec vol-test2 cat /data/hello.txt
-hi
+$ docker run -d --name vol-test2 -v mydata:/data ubuntu sleep infinity  # 새 컨테이너에 같은 볼륨 연결
+$ docker exec vol-test2 cat /data/hello.txt   # 파일 내용 읽기
+hi                                            # 컨테이너를 지웠는데도 데이터가 남아 있음
 ```
 > ✅ 컨테이너 삭제 후에도 **데이터 유지됨** 확인
 
@@ -252,26 +259,26 @@ hi
 
 ## 8. Git 설정 및 GitHub 연동
 ```bash
-$ git config --global user.name "손건"
-$ git config --global user.email "****@icloud.com"
-$ git config --global init.defaultBranch main
-$ git config --list
-user.name=손건
-user.email=****@icloud.com
-init.defaultbranch=main
+$ git config --global user.name "손건"              # 커밋에 남길 내 이름 설정 (--global: 이 PC 전체에 적용)
+$ git config --global user.email "****@icloud.com"   # 커밋에 남길 내 이메일 설정
+$ git config --global init.defaultBranch main        # 새 저장소의 기본 브랜치 이름을 main으로
+$ git config --list                                  # 설정한 값 확인
+user.name=손건                                       # 이름 들어감
+user.email=****@icloud.com                           # 이메일 들어감
+init.defaultbranch=main                              # 기본 브랜치 main
 ```
 **GitHub 원격 저장소 연결**
 ```bash
-$ git remote add origin https://github.com/reru721001-sketch/test-e1-1.git
-$ git remote -v
-origin	https://github.com/reru721001-sketch/test-e1-1.git (fetch)
-origin	https://github.com/reru721001-sketch/test-e1-1.git (push)
-$ git push -u origin main
+$ git remote add origin https://github.com/reru721001-sketch/test-e1-1.git   # 내 PC 저장소에 GitHub 주소를 origin이라는 이름으로 등록
+$ git remote -v                                                             # 등록된 주소 확인
+origin	https://github.com/reru721001-sketch/test-e1-1.git (fetch)          # 받아 올 때 쓰는 주소
+origin	https://github.com/reru721001-sketch/test-e1-1.git (push)           # 올릴 때 쓰는 주소
+$ git push -u origin main                                                   # 내 PC의 main을 GitHub에 올리기 (-u: 다음부터 git push만 쳐도 되게 연결)
 To https://github.com/reru721001-sketch/test-e1-1.git
- * [new branch]      main -> main
-branch 'main' set up to track 'origin/main'.
-$ git branch -vv
-* main 5b62004 [origin/main] 미션 E1-1 개발 워크스테이션 구축 결과 정리
+ * [new branch]      main -> main                                           # GitHub에 main 브랜치가 새로 생김
+branch 'main' set up to track 'origin/main'.                                # 내 main과 GitHub main이 연결됨
+$ git branch -vv                                                            # 브랜치 연결 상태 확인
+* main 5b62004 [origin/main] 미션 E1-1 개발 워크스테이션 구축 결과 정리    # [origin/main]이 보이면 연결 완료
 ```
 
 | 명령 | 하는 일 |
@@ -288,11 +295,11 @@ $ git branch -vv
 
 ## 9. 재현 방법
 ```bash
-git clone https://github.com/reru721001-sketch/test-e1-1.git
-cd test-e1-1
-docker build -t my-web:1.0 ./app
-docker run -d -p 8080:80 my-web:1.0
-curl localhost:8080
+git clone https://github.com/reru721001-sketch/test-e1-1.git   # GitHub에서 이 저장소를 내 PC로 내려받기
+cd test-e1-1                                                    # 내려받은 폴더로 이동
+docker build -t my-web:1.0 ./app                                # 이미지 만들기
+docker run -d -p 8080:80 my-web:1.0                             # 컨테이너 실행 (PC 8080 → 컨테이너 80)
+curl localhost:8080                                             # 접속해서 페이지 확인
 ```
 
 ---
@@ -303,19 +310,19 @@ curl localhost:8080
 
 ### docker-compose.yml
 ```yaml
-services:
-  web:
-    build: ./app
+services:                       # 실행할 컨테이너 목록
+  web:                          # 첫 번째: 내 웹 서버
+    build: ./app                # app 폴더의 Dockerfile로 이미지를 만들어서 실행
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT:-8080}:80"  # PC 포트 → 컨테이너 80 (WEB_PORT 값이 없으면 8080)
     depends_on:
-      - cache
-  cache:
-    image: redis:7-alpine
+      - cache                   # cache를 먼저 켠 다음 web을 켬
+  cache:                        # 두 번째: Redis (데이터 저장 프로그램)
+    image: redis:7-alpine       # 이미 만들어진 redis 이미지를 그대로 사용
     volumes:
-      - cache-data:/data
+      - cache-data:/data        # Redis 데이터를 cache-data 볼륨에 저장
 volumes:
-  cache-data:
+  cache-data:                   # 위에서 쓴 볼륨을 만들어 달라는 선언
 ```
 | 항목 | 의미 |
 |---|---|
@@ -326,11 +333,11 @@ volumes:
 
 ### 실행
 ```bash
-$ WEB_PORT=8090 docker compose up -d
-$ docker compose ps
-web     Up   0.0.0.0:8090->80/tcp
-cache   Up   6379/tcp
-$ docker compose down
+$ WEB_PORT=8090 docker compose up -d    # PC 8090 포트로 두 컨테이너를 한 번에 실행 (-d: 백그라운드)
+$ docker compose ps                     # compose로 띄운 컨테이너 상태 확인
+web     Up   0.0.0.0:8090->80/tcp       # 웹 서버 실행 중, PC 8090 → 컨테이너 80
+cache   Up   6379/tcp                   # Redis 실행 중 (web만 내부에서 씀, PC와 연결 안 함)
+$ docker compose down                   # 두 컨테이너 한 번에 정지 + 삭제
 ```
 📄 전체 로그: [logs/03_compose.txt](logs/03_compose.txt)
 
@@ -367,29 +374,30 @@ $ docker compose down
 **#4 포트 충돌 (`port is already allocated`)**
 - 문제: 이미 8080을 쓰는 컨테이너가 있는데 8080으로 하나 더 실행하니 오류가 났다.
 ```bash
-$ docker run -d -p 8080:80 --name conflict-test my-web:1.0
+$ docker run -d -p 8080:80 --name conflict-test my-web:1.0     # 8080으로 컨테이너 하나 더 실행 시도
+# ↓ 8080은 이미 누가 쓰고 있다는 오류
 docker: Error response from daemon: ... Bind for 0.0.0.0:8080 failed: port is already allocated
 ```
 - 원인 가설: 다른 컨테이너(또는 프로그램)가 8080을 이미 쓰고 있는 것 같다.
 - 확인: 누가 8080을 쓰는지 순서대로 찾았다.
 ```bash
 # 1) 컨테이너 중에 8080을 쓰는 게 있는지
-$ docker ps --filter publish=8080
+$ docker ps --filter publish=8080            # 8080 포트를 쓰는 컨테이너만 골라 보기
 NAMES         PORTS
-my-web-8080   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+my-web-8080   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   # 원인: 앞에서 띄운 my-web-8080
 
 # 2) 컨테이너가 아니면, PC에서 8080을 쓰는 프로그램(PID) 찾기
-$ netstat -ano | grep LISTEN | grep :8080
-  TCP    0.0.0.0:8080     0.0.0.0:0     LISTENING     25184
-$ powershell "Get-Process -Id 25184"
+$ netstat -ano | grep LISTEN | grep :8080    # PC에서 열린 포트 중 8080 찾기 (-ano: 전부, 숫자로, PID 포함)
+  TCP    0.0.0.0:8080     0.0.0.0:0     LISTENING     25184   # 25184번 프로그램(PID)이 8080을 쓰는 중
+$ powershell "Get-Process -Id 25184"          # PID 25184가 무슨 프로그램인지 확인
 25184 com.docker.backend      # Docker가 my-web-8080 때문에 열어 둔 것
 ```
 - 해결: 둘 중 하나를 선택한다.
   - 기존 컨테이너를 끈다: `docker stop my-web-8080` (컨테이너가 아니면 작업 관리자에서 그 PID 종료)
   - 다른 포트를 쓴다:
 ```bash
-$ docker run -d -p 8083:80 --name conflict-test my-web:1.0
-$ curl -s -o /dev/null -w "%{http_code}\n" localhost:8083
+$ docker run -d -p 8083:80 --name conflict-test my-web:1.0      # 안 쓰는 8083 포트로 다시 실행
+$ curl -s -o /dev/null -w "%{http_code}\n" localhost:8083      # 접속해서 응답 번호만 출력
 200                                   # 접속 성공
 ```
 
